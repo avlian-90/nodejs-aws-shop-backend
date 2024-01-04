@@ -1,18 +1,17 @@
 import { products } from "../data/products";
-import { Response } from "../types/types";
 
-export const handler = ():Response => {
+export const handler = async() => {
     try {
         return {
             statusCode: 200,
-            body: products
+            body: JSON.stringify(products)
         }
     } catch (error) {
         return {
             statusCode: 500,
-            body: {
+            body: JSON.stringify({
                 message: error instanceof Error ? error.message : "error",
-            }
+            })
         }
     }
 };

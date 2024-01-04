@@ -1,7 +1,6 @@
 import { products } from '../data/products';
-import { Response } from '../types/types';
 
-export const handler = (e: any):Response => {
+export const handler = async(e: any) => {
     try {
         const { productId } = e.pathParameters;
 
@@ -10,22 +9,22 @@ export const handler = (e: any):Response => {
         if (!product) {
         return {
             statusCode: 404,
-            body: {
+            body: JSON.stringify({
                 message: 'Product not found'
-            }
+            })
         }
         }
 
         return {
             statusCode: 200,
-            body: product
+            body: JSON.stringify(product)
         };
     }   catch (err: any) {
             return {
                 statusCode: 500,
-                body: {
+                body: JSON.stringify({
                     message: err.message
-                }
+                })
             }
     }
 };
