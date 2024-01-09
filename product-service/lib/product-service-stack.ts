@@ -20,6 +20,12 @@ export class ProductServiceStack extends cdk.Stack {
       entry: 'src/handlers/getProductById.ts',
     });
 
+    const createProduct = new NodejsFunction(this, 'CreateProduct', {
+      functionName: 'createProduct',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: 'src/handlers/createProduct.ts',
+    });
+
     const api = new apigateway.RestApi(this, 'products-api', {
       restApiName: 'api',
       defaultCorsPreflightOptions: {
@@ -32,9 +38,12 @@ export class ProductServiceStack extends cdk.Stack {
 
     const prodApi = api.root.addResource('products');
     const prodId = prodApi.addResource('{productId}');
+    const newProd = api.root.addResource('product');
 
     prodApi.addMethod('GET', new apigateway.LambdaIntegration(getProductsList));
 
     prodId.addMethod('GET', new apigateway.LambdaIntegration(getProductsById));
+
+    newProd.addMethod('PUT', new apigateway.LambdaIntegration(createProduct));
   }
 }

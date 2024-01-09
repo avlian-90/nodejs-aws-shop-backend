@@ -1,29 +1,15 @@
-import { products } from "../data/products";
+import { buildResponse } from '../helpers/buildResponse';
+import { combineTables } from '../helpers/combineTables';
+
 
 export const handler = async() => {
     try {
-        return {
-            statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": true,
-            },
-            body: JSON.stringify(products)
-        }
+        const combinedTables = await combineTables();
+        return buildResponse(200, combinedTables)
+       
     } catch (error) {
-        return {
-            statusCode: 500,
-            headers: {
-                "Access-Control-Allow-Methods": "*",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "*",
-                "Access-Control-Allow-Credentials": true,
-            },
-            body: JSON.stringify({
-                message: error instanceof Error ? error.message : "error",
-            })
-        }
+        return buildResponse(500, {
+            message: error instanceof Error ? error.message : "error"
+        })
     }
 };

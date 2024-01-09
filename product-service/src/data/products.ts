@@ -1,4 +1,4 @@
-import { Product } from '../types/types'
+import { Product } from '../types/types';
 
 export const products: Product[] = [
     {
@@ -36,5 +36,24 @@ export const products: Product[] = [
         title: 'Puma',
         description: 'shorts',
         price: 250
+    },
+    {
+        id: '7',
+        title: 'Zara',
+        description: 'dress',
+        price: 150
+    },
+    {
+        id: '8',
+        title: 'Polo',
+        description: 'shirt',
+        price: 100
+    },
+    {
+        id: '9',
+        title: 'Dkny',
+        description: 'boots',
+        price: 150
     }
 ]
+
