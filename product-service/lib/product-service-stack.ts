@@ -38,11 +38,12 @@ export class ProductServiceStack extends cdk.Stack {
 
     const prodApi = api.root.addResource('products');
     const prodId = prodApi.addResource('{productId}');
+    const newProd = api.root.addResource('product');
 
     prodApi.addMethod('GET', new apigateway.LambdaIntegration(getProductsList));
 
     prodId.addMethod('GET', new apigateway.LambdaIntegration(getProductsById));
 
-    prodApi.addMethod('POST', new apigateway.LambdaIntegration(createProduct));
+    newProd.addMethod('PUT', new apigateway.LambdaIntegration(createProduct));
   }
 }

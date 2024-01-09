@@ -1,7 +1,7 @@
 import { DynamoDB } from "aws-sdk";
 import * as uuid from "uuid";
-import { buildResponse } from "../utils/buildResponse";
-import { isProductValid } from "../utils/isProductValid";
+import { buildResponse } from "../helpers/buildResponse";
+import { isProductValid } from "../helpers/isProductValid";
 import { Product } from "../types/types";
 
 const dynamoDB = new DynamoDB.DocumentClient({
