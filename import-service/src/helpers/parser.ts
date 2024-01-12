@@ -1,5 +1,5 @@
 import { S3, config } from "aws-sdk";
-import * as csvParser from "csv-parser";
+import csv from "csv-parser";
 
 config.update({ region: 'eu-west-1' });
 
@@ -14,7 +14,7 @@ export const parser = async (bucket: string, key: string) => {
         Key: key,
       })
       .createReadStream()
-      .pipe(csvParser())
+      .pipe(csv())
       .on("data", (chunk: object) => {
         csvData.push(chunk);
       })
