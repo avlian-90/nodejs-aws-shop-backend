@@ -3,6 +3,16 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { Queue } from "aws-cdk-lib/aws-sqs";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import {
+  Effect,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
+import { Topic } from "aws-cdk-lib/aws-sns";
+import { EmailSubscription } from "aws-cdk-lib/aws-sns-subscriptions";
 
 export class ProductServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -45,5 +55,50 @@ export class ProductServiceStack extends cdk.Stack {
     prodId.addMethod('GET', new apigateway.LambdaIntegration(getProductsById));
 
     newProd.addMethod('PUT', new apigateway.LambdaIntegration(createProduct));
+
+    const catalogItemsQueue = new Queue(this, "catalogItemsQueue");
+
+    const role = new Role(this, "LambdaExecutionRole", {
+      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+    });
+
+    role.addToPolicy(
+      new PolicyStatement({
+        actions: ["sns:Publish"],
+        resources: ["*"],
+      })
+    );
+
+    const catalogBatchProcess = new NodejsFunction(
+      this,
+      "CatalogBatchProcess",
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        environment: { SQS_QUEUE_URL: catalogItemsQueue.queueUrl },
+        functionName: "catalogBatchProcess",
+        entry: "src/handlers/catalogBatchProcess.ts",
+        role: role,
+      }
+    );
+
+    catalogBatchProcess.addEventSource(
+      new SqsEventSource(catalogItemsQueue, {
+        batchSize: 5,
+      })
+    );
+
+    catalogBatchProcess.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: [catalogItemsQueue.queueArn],
+        actions: ["*"],
+      })
+    );
+
+    catalogItemsQueue.grantSendMessages(catalogBatchProcess);
+
+    const topic = new Topic(this, "createProductTopic");
+    const emailSubscription = new EmailSubscription("lianavagyan90@gmail.com");
+    topic.addSubscription(emailSubscription);
   }
 }

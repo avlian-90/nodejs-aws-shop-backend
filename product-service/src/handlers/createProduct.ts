@@ -38,7 +38,7 @@ export const handler = async (e: any) => {
 
   const product = !!e.body && JSON.parse(e.body);
 
-  if (isProductValid(product)) {
+  if (!isProductValid(product)) {
     return buildResponse(400, {
         massage: 'Product data is invalid!'
     })
