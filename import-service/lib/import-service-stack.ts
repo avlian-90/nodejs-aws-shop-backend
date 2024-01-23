@@ -27,9 +27,23 @@ export class ImportServiceStack extends cdk.Stack {
       },
     });
 
+    const importedBasicAuthorizer = cdk.Fn.importValue('BasicAuthorizerArn');
+   
+
+    const basicAuthorizer = lambda.Function.fromFunctionArn(
+      this,
+      'importedBasicAuthorizer',
+      importedBasicAuthorizer
+    );
+
     const importProd = api.root.addResource('import');
 
-    importProd.addMethod('GET', new apigateway.LambdaIntegration(importProductsFile));
+    importProd.addMethod('GET', new apigateway.LambdaIntegration(importProductsFile), {
+      authorizer: new apigateway.TokenAuthorizer(this, 'MyLambdaAuthorizer', {
+        handler: basicAuthorizer,
+      }),
+      authorizationType: apigateway.AuthorizationType.CUSTOM
+    });
 
     const importFileParser = new NodejsFunction(this, "ImportFileParser", {
       functionName: "importFileParser",

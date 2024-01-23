@@ -1,3 +1,4 @@
+import { buildResponse } from "../helpers/buildResponse";
 import { parser } from "../helpers/parser";
 import { sendMessagesToSQS } from "../helpers/sendMessagesToSQS";
 
@@ -14,9 +15,14 @@ export const handler = async(e: any) => {
 
             const queueUrl = "https://sqs.eu-west-1.amazonaws.com/847812859709/ProductServiceStack-catalogItemsQueue79451959-2W5cuVyFp1A1";
             await sendMessagesToSQS(csvContent, queueUrl);
-            console.log("sent to sqs")
+            console.log("sent to sqs");
         } 
+        return buildResponse(200, {
+            message: "CSV parse has been completed"
+        })
     } catch(error) {
-        console.error(`An error occurred: ${error}`);
+        return buildResponse(500, {
+            message: error
+        })
     }
 }
