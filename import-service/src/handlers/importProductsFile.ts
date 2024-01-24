@@ -2,7 +2,9 @@ import { S3 } from "aws-sdk";
 import { buildResponse } from "../helpers/buildResponse";
 
 export const handler = async(e: any) => {
-  const { name } = e.queryStringParameters ?? { name: "" };
+  const { name } = e.queryStringParameters;
+
+  console.log(name);
 
   const s3 = new S3({ region: 'eu-west-1' });
 
@@ -13,7 +15,7 @@ export const handler = async(e: any) => {
       Key: `uploaded/${name}`, 
       Expires: 60
     });
-
+    console.log(signedUrl);
     return buildResponse(200, signedUrl);
 
   } catch (error) {

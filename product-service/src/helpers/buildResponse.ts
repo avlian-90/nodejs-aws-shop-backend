@@ -11,4 +11,4 @@ export const buildResponse = (statusCode: number, body: Body): Response => {
       },
       body: JSON.stringify(body)
     };
-  };
+};

@@ -5,10 +5,35 @@ import { Construct } from 'constructs';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Bucket, EventType } from "aws-cdk-lib/aws-s3";
 import { S3EventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import { Effect, Policy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+
 
 export class ImportServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const importedBasicAuthorizer = cdk.Fn.importValue('BasicAuthorizerArn');
+
+    const basicAuthorizer = lambda.Function.fromFunctionArn(
+      this,
+      'importedBasicAuthorizer',
+      importedBasicAuthorizer
+    );
+
+    const invokeTokenAuthorizerRole = new Role(this, "Role", {
+      roleName: "InvokeTokenAuthorizerRole",
+      assumedBy: new ServicePrincipal("apigateway.amazonaws.com")
+    });
+
+    const invokeTokenAuthorizerPolicyStatement = new PolicyStatement({
+      effect: Effect.ALLOW,
+      sid: "AllowInvokeLambda",
+      resources: [basicAuthorizer.functionArn],
+      actions: ["lambda:InvokeFunction"]
+    });
+
+    invokeTokenAuthorizerRole.addToPolicy(invokeTokenAuthorizerPolicyStatement);
+
 
     const importProductsFile = new NodejsFunction(this, 'ImportProductsFile', {
       functionName: 'importProductsFile',
@@ -20,27 +45,20 @@ export class ImportServiceStack extends cdk.Stack {
     const api = new apigateway.RestApi(this, 'import-api', {
       restApiName: 'import API',
       defaultCorsPreflightOptions: {
-        allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowOrigins: ['*'],
+        allowMethods: ['*'],
         allowHeaders: ['*'],
         allowCredentials: true,
       },
     });
-
-    const importedBasicAuthorizer = cdk.Fn.importValue('BasicAuthorizerArn');
-   
-
-    const basicAuthorizer = lambda.Function.fromFunctionArn(
-      this,
-      'importedBasicAuthorizer',
-      importedBasicAuthorizer
-    );
 
     const importProd = api.root.addResource('import');
 
     importProd.addMethod('GET', new apigateway.LambdaIntegration(importProductsFile), {
       authorizer: new apigateway.TokenAuthorizer(this, 'MyLambdaAuthorizer', {
         handler: basicAuthorizer,
+        assumeRole: invokeTokenAuthorizerRole,
+        resultsCacheTtl: cdk.Duration.seconds(0)
       }),
       authorizationType: apigateway.AuthorizationType.CUSTOM
     });
