@@ -48,13 +48,13 @@ export class ProductServiceStack extends cdk.Stack {
 
     const prodApi = api.root.addResource('products');
     const prodId = prodApi.addResource('{productId}');
-    const newProd = api.root.addResource('product');
+  
 
     prodApi.addMethod('GET', new apigateway.LambdaIntegration(getProductsList));
 
     prodId.addMethod('GET', new apigateway.LambdaIntegration(getProductsById));
 
-    newProd.addMethod('PUT', new apigateway.LambdaIntegration(createProduct));
+    prodApi.addMethod('PUT', new apigateway.LambdaIntegration(createProduct));
 
     const catalogItemsQueue = new Queue(this, "catalogItemsQueue");
 
